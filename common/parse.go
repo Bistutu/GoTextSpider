@@ -16,33 +16,32 @@ func FetchAndParse(url string) ([]string, error) {
 		return nil, err
 	}
 	defer resp.Body.Close()
+
 	doc, err := html.Parse(resp.Body)
 	if err != nil {
 		log.Errorf("fail to parse html: %v", err)
 		return nil, err
 	}
 
-	// 保存所有文本
-	texts := make([]string, 0)
-
-	var parseText func(*html.Node) []string
-	parseText = func(n *html.Node) []string {
-		// 如果是文本节点，且不是 script、style、img、noscript 则获取文本
-		if n.Type == html.TextNode &&
-			n.Parent.Data != "script" &&
-			n.Parent.Data != "style" &&
-			n.Parent.Data != "img" &&
-			n.Parent.Data != "noscript" {
+	var parseText func(*html.Node, []string) []string
+	parseText = func(n *html.Node, texts []string) []string {
+		if n.Type == html.ElementNode {
+			switch n.Data {
+			case "script", "style", "img", "noscript":
+				return texts
+			}
+		}
+		if n.Type == html.TextNode {
 			text := strings.TrimSpace(n.Data)
 			if len(text) > 0 {
 				texts = append(texts, text)
 			}
 		}
-		// 遍历所有子节点
 		for c := n.FirstChild; c != nil; c = c.NextSibling {
-			parseText(c)
+			texts = parseText(c, texts)
 		}
 		return texts
 	}
-	return parseText(doc), nil
+
+	return parseText(doc, make([]string, 0)), nil
 }
