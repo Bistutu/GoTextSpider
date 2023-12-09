@@ -54,7 +54,10 @@ func Sniffer(link string) error {
 	queue := make([]string, 0)
 
 	// 解析初始链接，获取主机名
-	initialURL, _ := url.Parse(link)
+	initialURL, err := url.Parse(link)
+	if err != nil {
+		return err
+	}
 	initialHost := initialURL.Host
 
 	queue = append(queue, link)
