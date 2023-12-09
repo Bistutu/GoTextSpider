@@ -9,4 +9,5 @@ import (
 func main() {
 	url := "https://github.com/"
 	fmt.Println(common.FetchAndParse(url))
+	//fmt.Println(common.Sniffer(url))
 }
